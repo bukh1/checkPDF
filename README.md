@@ -1,4 +1,4 @@
-# check-PDF Windown
+# check-PDF Windows
 
 #step1 install QPDF on Windows:
 https://sourceforge.net/projects/qpdf/
