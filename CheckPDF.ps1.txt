@@ -1,0 +1,38 @@
+param (
+    [string]$folderPath,  # เส้นทางของโฟลเดอร์ PDF
+    [string]$logFileName = "PDF_Check_Report.txt"  # ชื่อไฟล์ log ค่าเริ่มต้น
+)
+
+# ตั้งค่าไฟล์ log สำหรับบันทึกผลลัพธ์
+$logFilePath = Join-Path -Path $folderPath -ChildPath $logFileName
+
+# ลบไฟล์ log เดิม ถ้ามีอยู่แล้ว
+if (Test-Path $logFilePath) {
+    Remove-Item $logFilePath
+}
+
+# ตัวแปรสำหรับเก็บผลลัพธ์ที่เสียหาย
+$damagedFiles = @()
+
+# เริ่มตรวจสอบไฟล์ PDF ในโฟลเดอร์
+Get-ChildItem -Path $folderPath -Filter *.pdf -Recurse | ForEach-Object {
+    $file = $_.FullName
+    $result = qpdf --check $file 2>&1
+    
+    if ($result -like "*file is damaged*") {
+        $output = "$file is damaged"
+        $damagedFiles += $output  # เก็บไฟล์ที่เสียหาย
+    }
+}
+
+# แสดงผลลัพธ์เฉพาะไฟล์ที่เสียหาย
+if ($damagedFiles.Count -gt 0) {
+    $damagedFiles | Out-File -Append -FilePath $logFilePath
+    Write-Output "Damaged files found:"
+    $damagedFiles
+} else {
+    Write-Output "No damaged files found."
+}
+
+# แสดงผลลัพธ์สุดท้าย
+Write-Output "PDF check completed. See results in $logFilePath"
