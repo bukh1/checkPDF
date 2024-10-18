@@ -77,3 +77,55 @@ Open a new Command Prompt Type the following command to check if QPDF is install
          .\CheckPDF.ps1 -folderPath "path" -logFileName "MyReport.txt"
 
 
+# QPDF(Linux)
+
+#Step1 To upgrade all software to the new version available in the repository.
+    
+    sudo apt update
+
+#step2 Install QPDF on linux
+    
+    sudo apt install qpdf
+
+#step3 create file Script .sh
+    
+    nano check_pdf.sh
+
+#step4 Script file details
+    
+    #!/bin/bash
+
+
+    folderPath=${1:-"/path/to/your/pdf/folder"}
+    logFileName=${2:-"PDF_Check_Report.txt"}
+    logFilePath="$folderPath/$logFileName"
+
+    [ -f "$logFilePath" ] && rm "$logFilePath"
+    damagedFiles=()
+
+    find "$folderPath" -type f -name "*.pdf" | while read -r file; do
+        result=$(qpdf --check "$file" 2>&1)
+    
+        if echo "$result" | grep -q "can't find PDF header\|file is damaged\|unable to find trailer dictionary"; then
+            echo "$file is damaged" >> "$logFilePath"
+            damagedFiles+=("$file")
+            echo "Checking file: $file"
+            echo "$result"
+        fi
+    done
+
+    if [ ${#damagedFiles[@]} -gt 0 ]; then
+        echo "Damaged files report saved to $logFilePath"
+    else
+        echo "PDF check completed."
+    fi
+
+
+
+#step5 Set permissions for the script:
+    
+    chmod +x fileName.sh
+
+#step6 Run script
+    
+    ./fileName.sh "/path/to/your/pdf/folder" "MyReport.txt"
